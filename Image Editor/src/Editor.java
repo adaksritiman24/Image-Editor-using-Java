@@ -212,18 +212,17 @@ public class Editor { // main editor class-> the GUI part
     private static JFrame frame; // main frame object
     static JPanel panel; // editor panel
     //frame dimensions
-    static int frameHeight = 780;
+    static int frameHeight = 800;
     static int frameWidth = 614;
     //panel dimensions
     static int panelHeight = 600;
     static int panelWidth = 600;
-    private boolean cropping = false;
-    private CropComponent cp;
+
     private Color btnColor = new Color(200,200,200); //button color
     private Border b = new BevelBorder(BevelBorder.RAISED); //button border type
 
     private MainImage originalImage; //a seperate copy of the original image is kept throughout the time while editing of an image is done 
-    private MainImage BWImage; //black and white image
+    // private MainImage BWImage; //black and white image
     private MainImage previousImage; //current image is stored here every time an new filter is added. 
     public JPanel actionPanel; // additional extended panel required for brightness, contrast , sharpness and to follow crop instructions.
 
@@ -264,13 +263,120 @@ public class Editor { // main editor class-> the GUI part
         return copy;
     }
 
+    public void setmenubar(){
+        JMenuBar jmen = new JMenuBar();
+        JMenu moreOp = new JMenu("More");
+        moreOp.setBorder(b);
+        JMenuItem red= new JMenuItem("Adjust Red");
+        red.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                try{
+                //store current image im previous image before applying filters
+                BufferedImage prev = getCopyOf(image.getImage());
+                previousImage = new MainImage(prev, panelWidth, panelHeight);
+                showRGBBar(1);
+                }catch(Exception ex){
+                    //pass
+                }
+            }
+        });
+        JMenuItem green= new JMenuItem("Adjust Green");
+        green.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                try{
+                //store current image im previous image before applying filters
+                BufferedImage prev = getCopyOf(image.getImage());
+                previousImage = new MainImage(prev, panelWidth, panelHeight);
+                showRGBBar(2);
+                }catch(Exception ex){
+                    //pass
+                }
+            }
+        });
+        JMenuItem blue= new JMenuItem("Adjust Blue");
+        blue.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                try{
+                //store current image im previous image before applying filters
+                BufferedImage prev = getCopyOf(image.getImage());
+                previousImage = new MainImage(prev, panelWidth, panelHeight);
+                showRGBBar(3);
+                }catch(Exception ex){
+                    //pass
+                }
+            }
+        });
+        moreOp.add(red);
+        moreOp.add(green);
+        moreOp.add(blue);
+        jmen.add(moreOp);
+        jmen.setBorder(b);
+        jmen.setVisible(true);
+        frame.setJMenuBar(jmen);
+
+    }
+
+    //slider for adjusting RGB values 
+    public void showRGBBar(int col){
+        
+        int r, g, bl;
+        r=g=bl=0;
+        if (col==1) r=250;
+        else if (col==2) g=250;
+        else bl=250;
+
+        actionPanel.removeAll();
+        actionPanel.repaint();
+
+        JSlider rgbbar = new JSlider(-50, 50, 0); //create JSlider range -> -50 to +50
+        rgbbar.setMajorTickSpacing(5); //ticks
+        rgbbar.setMinorTickSpacing(1);
+        rgbbar.setPaintTicks(true);
+        rgbbar.setPaintLabels(true);
+        rgbbar.setBounds(10, 5, 430, 50);
+        rgbbar.setBackground(new Color(r, g, bl));
+        rgbbar.setForeground(new Color(255,255,255));
+        rgbbar.setBorder(b);
+        rgbbar.addChangeListener(new ChangeListener() {
+            public void stateChanged(ChangeEvent c) {
+                BufferedImage clone = getCopyOf(previousImage.getImage()); //make a clone of the previous image 
+                int val = rgbbar.getValue();
+                MainImage newimg = changeRGB(new MainImage(clone, panelWidth, panelHeight), val, col); 
+                repaintPanel(newimg); // set the new filtered image in the canvas and repaint panel
+            }
+        });
+
+        //close button for closing brightness bar
+        JButton close = new JButton("Close");
+        close.setBounds(450, 5, 100, 50);
+        close.setBackground(Color.red);
+        close.setForeground(Color.white);
+        close.setBorder(b);
+        close.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                actionPanel.removeAll();
+                actionPanel.repaint();
+            }
+        });
+        actionPanel.setLayout(null);
+        //add brightness bar and close button to the frame
+        actionPanel.add(rgbbar);
+        actionPanel.add(close);
+        actionPanel.repaint();
+        frame.setVisible(true);
+    }
+
+
     public void setMainFrame() { // setting up the GUI part
         //the frame of the editor application
         frame = new JFrame("Image Editor ");
         frame.setResizable(false); //frame not resizable
-        frame.setBounds(400, 30, frameWidth, frameHeight);
+        frame.setBounds(400, 10, frameWidth, frameHeight);
         frame.setLayout(null);
 
+        //setmenubar for adjusting rgb values
+        //more 
+        setmenubar();
         //panel (fixed size)-> holds the main canvas(variable size)
         panel = new JPanel();
         panel.setBounds(0, 0, panelWidth, panelHeight);
@@ -305,11 +411,10 @@ public class Editor { // main editor class-> the GUI part
         crop.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
 
-                cropping = true;
                 try {
                     BufferedImage prev = getCopyOf(image.getImage());
                     previousImage = new MainImage(prev, panelWidth, panelHeight);
-                    cp = new CropComponent(canvas, image, getEditor());
+                    new CropComponent(canvas, image, getEditor());
                     JLabel info = new JLabel("Click and drag your mouse over the area in the image to crop");
                     actionPanel.removeAll();
                     info.setBounds(5, 5, panelWidth - 20, 70);
@@ -824,6 +929,85 @@ public class Editor { // main editor class-> the GUI part
             }
         }
         repaintPanel(image); // repaint panel
+    }
+
+    public MainImage changeRGB(MainImage mimg, int val, int col){ //adjust red green blue 
+        int wd = image.getImage().getWidth();
+        int ht = image.getImage().getHeight();
+        BufferedImage temp = mimg.getImage();
+        int growth = val*2;
+        if(col==1){ //adjust red
+            for(int i =0;i<wd;i++){
+                for(int j  =0;j<ht;j++){
+                    Color c = new Color(temp.getRGB(i, j)); //get color of current pixel
+                    //calculate new color
+                    int r =c.getRed()+growth;
+                    int g =c.getGreen()-growth/2;
+                    int b =c.getBlue()-growth/2;
+                    if(r>255)r=255;
+                    if(r<0) r=0;
+
+                    if(g>255)g=255;
+                    if(g<0) g=0;
+
+                    if(b>255)b=255;
+                    if(b<0) b=0;
+
+                    
+                    Color newCol = new Color(r, g, b);
+                    temp.setRGB(i, j,newCol.getRGB()); 
+                }
+            }
+        }
+
+        else if(col==2){ //adjust green
+            for(int i =0;i<wd;i++){
+                for(int j  =0;j<ht;j++){
+                    Color c = new Color(temp.getRGB(i, j)); //get color of current pixel
+                    //calculate new colors
+                    int r =c.getRed()-growth/2;
+                    int g =c.getGreen()+growth;
+                    int b =c.getBlue()-growth/2;
+                    if(r>255)r=255;
+                    if(r<0) r=0;
+
+                    if(g>255)g=255;
+                    if(g<0) g=0;
+
+                    if(b>255)b=255;
+                    if(b<0) b=0;
+
+                    
+                    Color newCol = new Color(r, g, b);
+                    temp.setRGB(i, j,newCol.getRGB()); 
+                }
+            }
+        }
+
+        else{ //adjust blue 
+            for(int i =0;i<wd;i++){
+                for(int j  =0;j<ht;j++){
+                    Color c = new Color(temp.getRGB(i, j)); //get color of current pixel
+                    //calculate new color
+                    int r =c.getRed()-growth/2;
+                    int g =c.getGreen()-growth/2;
+                    int b =c.getBlue()+growth;
+                    if(r>255)r=255;
+                    if(r<0) r=0;
+
+                    if(g>255)g=255;
+                    if(g<0) g=0;
+
+                    if(b>255)b=255;
+                    if(b<0) b=0;
+
+                    
+                    Color newCol = new Color(r, g, b);
+                    temp.setRGB(i, j,newCol.getRGB()); 
+                }
+            }
+        }
+        return new MainImage(temp, panelWidth, panelHeight);
     }
 
     //----------------Brightness------------------------//
