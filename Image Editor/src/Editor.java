@@ -306,9 +306,23 @@ public class Editor { // main editor class-> the GUI part
                 }
             }
         });
+        JMenuItem bw= new JMenuItem("Black & White");
+        bw.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                try{
+                //store current image im previous image before applying filters
+                BufferedImage prev = getCopyOf(image.getImage());
+                previousImage = new MainImage(prev, panelWidth, panelHeight);
+                convertToBlackWhite();
+                }catch(Exception ex){
+                    //pass
+                }
+            }
+        });
         moreOp.add(red);
         moreOp.add(green);
         moreOp.add(blue);
+        moreOp.add(bw);
         jmen.add(moreOp);
         jmen.setBorder(b);
         jmen.setVisible(true);
@@ -459,7 +473,7 @@ public class Editor { // main editor class-> the GUI part
         frame.add(revert);
 
         //convert image to grayscale
-        JButton bw = new JButton("B & W");
+        JButton bw = new JButton("GrayScale");
         bw.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
@@ -890,7 +904,7 @@ public class Editor { // main editor class-> the GUI part
         }
     }
 
-    //----called when B & W button is clicked----// converts image to black and white tone
+    //----called when B & W button is clicked----// converts image to grayscale tone
     public void converttoBW() {
 
         int wd = image.getImage().getWidth(); //get image dimensions
@@ -908,6 +922,28 @@ public class Editor { // main editor class-> the GUI part
             }
         }
         repaintPanel(image); // repaint panel/canvas with filtered image
+    }
+
+    //-------------Convert image to only black and white------------//
+
+    public void convertToBlackWhite(){
+        int avg = 255/2; //half way to rgb
+        int pixel  = 0;
+        int wd = image.getImage().getWidth();
+        int ht = image.getImage().getHeight();
+        BufferedImage temp = image.getImage();
+        for(int i = 0; i<wd; i++){
+            for(int j  =0; j<ht; j++){
+                Color c = new Color(temp.getRGB(i, j));
+                if(((c.getRed() + c.getBlue()+ c.getBlue())/3)<avg) // if avg of all the pixels is lesser than 127
+                    pixel = 0; //set current pixel to black
+                else pixel = 255;   //set pixel to white 
+
+                Color newCol = new Color(pixel, pixel, pixel);
+                image.getImage().setRGB(i,j, newCol.getRGB());
+            }
+        }
+        repaintPanel(image);
     }
 
     //--------------Invert color of a given image-------------//
