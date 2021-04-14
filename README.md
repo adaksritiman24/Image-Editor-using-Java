@@ -5,6 +5,7 @@ This is a simple image editing application created using Java
 * open any image
 * crop the image
 * convert image to black and white
+* convert image to grayscale
 * invert color of the image (get negative)
 * reset image to its original form
 * adjust brightness of the image
@@ -21,7 +22,7 @@ This is a simple image editing application created using Java
 
 ![1](https://user-images.githubusercontent.com/53531220/113092497-b8f08c80-920b-11eb-9ab5-5e9491145983.JPG)
 
-* black and white filter
+* grayscale filter
 
 ![2](https://user-images.githubusercontent.com/53531220/113092510-c0b03100-920b-11eb-8e30-665ee6f842a2.JPG)
 
@@ -40,3 +41,11 @@ This is a simple image editing application created using Java
 * cropped , mirror reflected and sharpened
 
 ![6](https://user-images.githubusercontent.com/53531220/113092560-d6bdf180-920b-11eb-8a09-722167c2dac3.JPG)
+
+* black and white filter
+
+![b w](https://user-images.githubusercontent.com/53531220/114674087-7ad38c80-9d24-11eb-807a-c70eb06fbcbe.JPG)
+
+* Red Filter
+
+![red](https://user-images.githubusercontent.com/53531220/114674029-6ee7ca80-9d24-11eb-8ec0-121e54506c2b.JPG)
