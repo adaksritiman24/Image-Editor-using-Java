@@ -12,6 +12,7 @@ This is a simple image editing application created using Java
 * adjust contrast of the image
 * adjust sharpness of the image
 * adjust red, green and blue tone
+* emboss and sepia filter
 * rotate image
 * mirror reflect the image
 * save the image
