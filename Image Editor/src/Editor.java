@@ -267,6 +267,9 @@ public class Editor { // main editor class-> the GUI part
         JMenuBar jmen = new JMenuBar();
         JMenu moreOp = new JMenu("More");
         moreOp.setBorder(b);
+        //-------------------More Items -----------------//
+
+        //Adjust Red tone
         JMenuItem red= new JMenuItem("Adjust Red");
         red.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
@@ -280,6 +283,8 @@ public class Editor { // main editor class-> the GUI part
                 }
             }
         });
+
+        //Adjust green tone
         JMenuItem green= new JMenuItem("Adjust Green");
         green.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
@@ -293,6 +298,8 @@ public class Editor { // main editor class-> the GUI part
                 }
             }
         });
+
+        //Adjust blue tone
         JMenuItem blue= new JMenuItem("Adjust Blue");
         blue.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
@@ -306,6 +313,8 @@ public class Editor { // main editor class-> the GUI part
                 }
             }
         });
+
+        //black and white filter option
         JMenuItem bw= new JMenuItem("Black & White");
         bw.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
@@ -319,10 +328,49 @@ public class Editor { // main editor class-> the GUI part
                 }
             }
         });
+
+        //Emboss filter option
+        JMenuItem em= new JMenuItem("Emboss");
+        em.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                try{
+                //store current image im previous image before applying filters
+                BufferedImage prev = getCopyOf(image.getImage());
+                previousImage = new MainImage(prev, panelWidth, panelHeight);
+                embossImage(); //emboss image
+                }catch(Exception ex){
+                    //pass
+                    System.out.println("Error");
+                }
+            }
+        });
+
+        //sepia filter option
+        JMenuItem sepia= new JMenuItem("Sepia");
+        sepia.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                try{
+                //store current image im previous image before applying filters
+                BufferedImage prev = getCopyOf(image.getImage());
+                previousImage = new MainImage(prev, panelWidth, panelHeight);
+                imageSepia(); //apply sepia filter
+                }catch(Exception ex){
+                    //pass
+                    System.out.println("Error");
+                    System.out.println(ex.getMessage());
+                }
+            }
+        });
+        
+        //add the menu-items to menu
         moreOp.add(red);
         moreOp.add(green);
         moreOp.add(blue);
         moreOp.add(bw);
+        moreOp.add(em);
+        moreOp.add(sepia);
+
+
         jmen.add(moreOp);
         jmen.setBorder(b);
         jmen.setVisible(true);
@@ -946,6 +994,96 @@ public class Editor { // main editor class-> the GUI part
         repaintPanel(image);
     }
 
+    //convert image to sepia
+    public void imageSepia(){
+        BufferedImage temp = image.getImage();
+
+        //dimensions
+        int w = temp.getWidth();
+        int h = temp.getHeight();
+
+        //sepia intensity
+        int intensity = 60;
+        //sepia depth
+        int sepiaDepth = 27;
+
+        for(int i = 0;i < w;i++){
+            for(int j  = 0; j< h; j++){
+                Color newCol = new Color(temp.getRGB(i, j));
+                
+                int r = newCol.getRed();
+                int g = newCol.getGreen();
+                int b = newCol.getBlue();
+
+                int avg = (r+g+b)/3;
+                r=g=b=avg;
+
+                r+= sepiaDepth*2;
+                g+= sepiaDepth*0.62;
+                b-= intensity;
+
+                //Adjusting values to their limits
+                r = Math.min(r, 255);
+                g = Math.min(g, 255);
+                b = Math.max(b, 0);
+
+                image.getImage().setRGB(i, j, new Color(r, g, b).getRGB());
+
+            }
+        }
+        //increas the contrast
+        RescaleOp resc = new RescaleOp(1.28f,-28, null);
+        temp = resc.filter(image.getImage(), null);
+        repaintPanel(new MainImage(temp, panelWidth, panelHeight));
+    }
+    //Following two funtions are used for the Emboss filter
+    //returns a color matrix containing the RGB values if every pixel of the current image 
+    public int[][][] getRGB_buffer(){
+        //extract width and height
+        int w = image.getImage().getWidth();
+        int h = image.getImage().getHeight();
+        
+        BufferedImage temp = image.getImage();
+        int[][][] rgb_buffer = new int[3][w][h]; //color matrix
+
+        for(int i  =0; i<w; i++){
+            for(int j = 0; j<h; j++){
+                Color pixelColor = new Color(temp.getRGB(i, j));
+                rgb_buffer[0][i][j] = pixelColor.getRed(); //red color for (i,j)th pixel
+                rgb_buffer[1][i][j] = pixelColor.getGreen(); //green color ,,
+                rgb_buffer[2][i][j] = pixelColor.getBlue(); //blue color ,,
+            }
+        }
+
+        return rgb_buffer; //return color matrix
+
+    }
+    //----------------------------Emboss---------------------//
+    public void embossImage(){
+        //get rgb buffer of the image
+        int[][][] rgb_buffer = getRGB_buffer();
+
+        int w = image.getImage().getWidth();
+        int h = image.getImage().getHeight();
+
+        for(int i  =1; i<w; i++){
+            for(int j = 1; j<h; j++){
+                
+                int r=0,g=0,b=0;
+                // /deduct the current pixel value from its ajacent pixel value
+                r = Math.min(Math.abs(rgb_buffer[0][i][j] - rgb_buffer[0][i-1][j-1])+100, 255);
+                g = Math.min(Math.abs(rgb_buffer[1][i][j] - rgb_buffer[1][i-1][j-1])+100, 255);
+                b = Math.min(Math.abs(rgb_buffer[2][i][j] - rgb_buffer[2][i-1][j-1])+100, 255);
+
+                image.getImage().setRGB(i, j, new Color(r, g, b).getRGB());
+                
+            }
+        }
+        //repaint panel
+        repaintPanel(image);
+
+    }
+
     //--------------Invert color of a given image-------------//
     public void invertColor() {
         int wd = image.getImage().getWidth(); //get absolute width of the image 
@@ -968,82 +1106,34 @@ public class Editor { // main editor class-> the GUI part
     }
 
     public MainImage changeRGB(MainImage mimg, int val, int col){ //adjust red green blue 
-        int wd = image.getImage().getWidth();
-        int ht = image.getImage().getHeight();
-        BufferedImage temp = mimg.getImage();
-        int growth = val*2;
+
+        BufferedImage temp = mimg.getImage(); //true copy of the original image
+
         if(col==1){ //adjust red
-            for(int i =0;i<wd;i++){
-                for(int j  =0;j<ht;j++){
-                    Color c = new Color(temp.getRGB(i, j)); //get color of current pixel
-                    //calculate new color
-                    int r =c.getRed()+growth;
-                    int g =c.getGreen()-growth/2;
-                    int b =c.getBlue()-growth/2;
-                    if(r>255)r=255;
-                    if(r<0) r=0;
 
-                    if(g>255)g=255;
-                    if(g<0) g=0;
-
-                    if(b>255)b=255;
-                    if(b<0) b=0;
-
-                    
-                    Color newCol = new Color(r, g, b);
-                    temp.setRGB(i, j,newCol.getRGB()); 
-                }
-            }
+            float factors[] = {1f, 1f, 1f};
+            float offset[] = {val*2, 0, 0};
+            
+            RescaleOp op = new RescaleOp(factors, offset, null);
+            return new MainImage(op.filter(temp, null), panelWidth, panelHeight);
         }
 
         else if(col==2){ //adjust green
-            for(int i =0;i<wd;i++){
-                for(int j  =0;j<ht;j++){
-                    Color c = new Color(temp.getRGB(i, j)); //get color of current pixel
-                    //calculate new colors
-                    int r =c.getRed()-growth/2;
-                    int g =c.getGreen()+growth;
-                    int b =c.getBlue()-growth/2;
-                    if(r>255)r=255;
-                    if(r<0) r=0;
-
-                    if(g>255)g=255;
-                    if(g<0) g=0;
-
-                    if(b>255)b=255;
-                    if(b<0) b=0;
-
-                    
-                    Color newCol = new Color(r, g, b);
-                    temp.setRGB(i, j,newCol.getRGB()); 
-                }
-            }
+            float factors[] = {1f, 1f, 1f};
+            float offset[] = {0, val*2, 0};
+            
+            RescaleOp op = new RescaleOp(factors, offset, null);
+            return new MainImage(op.filter(temp, null), panelWidth, panelHeight);
         }
 
         else{ //adjust blue 
-            for(int i =0;i<wd;i++){
-                for(int j  =0;j<ht;j++){
-                    Color c = new Color(temp.getRGB(i, j)); //get color of current pixel
-                    //calculate new color
-                    int r =c.getRed()-growth/2;
-                    int g =c.getGreen()-growth/2;
-                    int b =c.getBlue()+growth;
-                    if(r>255)r=255;
-                    if(r<0) r=0;
-
-                    if(g>255)g=255;
-                    if(g<0) g=0;
-
-                    if(b>255)b=255;
-                    if(b<0) b=0;
-
-                    
-                    Color newCol = new Color(r, g, b);
-                    temp.setRGB(i, j,newCol.getRGB()); 
-                }
-            }
+            float factors[] = {1f, 1f, 1f};
+            float offset[] = {0, 0, val*2};
+            
+            RescaleOp op = new RescaleOp(factors, offset, null);
+            return new MainImage(op.filter(temp, null), panelWidth, panelHeight);
         }
-        return new MainImage(temp, panelWidth, panelHeight);
+
     }
 
     //----------------Brightness------------------------//
