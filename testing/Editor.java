@@ -1,6 +1,8 @@
 import java.awt.*;
 import java.awt.image.*;
 import java.awt.event.*;
+import java.awt.geom.AffineTransform;
+
 import javax.swing.event.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -218,6 +220,8 @@ public class Editor { // main editor class-> the GUI part
     static int panelHeight = 600;
     static int panelWidth = 600;
 
+    private final double MAXLIMIT = 1200; 
+
     private Color btnColor = new Color(200,200,200); //button color
     private Border b = new BevelBorder(BevelBorder.RAISED); //button border type
 
@@ -246,9 +250,34 @@ public class Editor { // main editor class-> the GUI part
         return this;
     }
 
+    //scale image with height or width > MAXLIMIT
+    public BufferedImage scale(BufferedImage img){
+        double max_wh = Math.max(img.getWidth(), img.getHeight());
+        if(max_wh>MAXLIMIT){
+            double scalefactor = MAXLIMIT/max_wh;
+            System.out.println("Scalefactor: "+scalefactor);
+            double new_w = img.getWidth()*scalefactor;
+            double new_h = img.getHeight()*scalefactor;
+            int w = (int) new_w;
+            int h = (int) new_h;
+            System.out.println("Corrected width, height: "+w+" "+h);
+            BufferedImage newimg = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+            
+            AffineTransform at = new AffineTransform();
+            at.scale(scalefactor, scalefactor);
+
+            AffineTransformOp scaleOp = new AffineTransformOp(at, AffineTransformOp.TYPE_BILINEAR);
+            newimg = scaleOp.filter(img, newimg);
+            return newimg;
+        }
+        return img;
+
+    }
+
     public void scanImage() throws IOException { // loading image form the user
 
-        img = ImageIO.read(new File(filepath));
+        BufferedImage got = ImageIO.read(new File(filepath));
+        img = scale(got);
         image = new MainImage(img, panelWidth, panelHeight); //store original image - for editing
         previousImage = null; //currently none
         BufferedImage new_img = getCopyOf(img);
@@ -377,7 +406,7 @@ public class Editor { // main editor class-> the GUI part
         currentImage = getCopyOf(previousImage.getImage());
 
         //red adjustment slider
-        JSlider redbar = new JSlider(-50, 50, 0); //create JSlider range -> -50 to +50
+        JSlider redbar = new JSlider(-60, 60, 0); //create JSlider range -> -50 to +50
         redbar.setMajorTickSpacing(5); //ticks
         redbar.setMinorTickSpacing(1);
         redbar.setPaintTicks(true);
@@ -401,7 +430,7 @@ public class Editor { // main editor class-> the GUI part
         });
 
 
-        JSlider greenbar = new JSlider(-50, 50, 0); //create JSlider range -> -50 to +50
+        JSlider greenbar = new JSlider(-60, 60, 0); //create JSlider range -> -50 to +50
         greenbar.setMajorTickSpacing(5); //ticks
         greenbar.setMinorTickSpacing(1);
         greenbar.setPaintTicks(true);
@@ -424,7 +453,7 @@ public class Editor { // main editor class-> the GUI part
             }
         });
 
-        JSlider bluebar = new JSlider(-50, 50, 0); //create JSlider range -> -50 to +50
+        JSlider bluebar = new JSlider(-60, 60, 0); //create JSlider range -> -50 to +50
         bluebar.setMajorTickSpacing(5); //ticks
         bluebar.setMinorTickSpacing(1);
         bluebar.setPaintTicks(true);
