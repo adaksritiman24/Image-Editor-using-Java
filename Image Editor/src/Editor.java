@@ -983,7 +983,7 @@ public class Editor { // main editor class-> the GUI part
         for(int i = 0; i<wd; i++){
             for(int j  =0; j<ht; j++){
                 Color c = new Color(temp.getRGB(i, j));
-                if(((c.getRed() + c.getBlue()+ c.getBlue())/3)<avg) // if avg of all the pixels is lesser than 127
+                if(((c.getRed() + c.getBlue()+ c.getGreen())/3)<avg) // if avg of all the pixels is lesser than 127
                     pixel = 0; //set current pixel to black
                 else pixel = 255;   //set pixel to white 
 
