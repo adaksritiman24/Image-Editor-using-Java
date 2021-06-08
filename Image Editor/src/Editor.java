@@ -452,10 +452,33 @@ public class Editor { // main editor class-> the GUI part
         frame.add(actionPanel);
 
         frame.add(panel);
-
-
         //----------first row functionalities----------//
         // open image
+        addOpen();
+        addCropImage();// crop image
+        addReset();//reset original image in the canvas 
+        addGrayscale();//convert image to grayscale
+        addInvert();//invert the pixel values in the image--negative of the image
+        addPrevious();//restore the recent previous version of the image 
+        
+
+        //------------------second row functionaliies-----------------------//
+        //Additional filters for the second row 
+        addBrightness();
+        addContrast();
+        addSharpner();
+        addRotate();
+        addMirror();
+
+        //save file button
+        addSave();
+
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+
+    }
+    //----------------------Adding buttons to the first row-------------------------//
+    public void addOpen(){ //open button
         JButton open = new JButton("OPEN");
         open.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -467,8 +490,9 @@ public class Editor { // main editor class-> the GUI part
         open.setFocusPainted(false);
         open.setBorder(b);
         frame.add(open);
+    }
 
-        // crop image
+    public void addCropImage(){ //Crop button
         JButton crop = new JButton("CROP");
         crop.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -496,9 +520,9 @@ public class Editor { // main editor class-> the GUI part
         crop.setFocusPainted(false);
         crop.setBorder(b);
         frame.add(crop);
+    }
 
-
-        //reset original image in the canvas 
+    public void addReset(){ //Reset button
         JButton revert = new JButton("Reset");
         revert.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -519,8 +543,9 @@ public class Editor { // main editor class-> the GUI part
         revert.setFocusPainted(false);
         revert.setBorder(b);
         frame.add(revert);
+    }
 
-        //convert image to grayscale
+    public void addGrayscale(){ // grayscale button
         JButton bw = new JButton("GrayScale");
         bw.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -540,8 +565,9 @@ public class Editor { // main editor class-> the GUI part
         bw.setFocusPainted(false);
         bw.setBorder(b);
         frame.add(bw);
+    }
 
-        //invert the pixel values in the image--negative of the image
+    public void addInvert(){ //invert button
         JButton invert = new JButton("Invert");
         invert.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -562,9 +588,9 @@ public class Editor { // main editor class-> the GUI part
         invert.setFocusPainted(false);
         invert.setBorder(b);
         frame.add(invert);
-        
+    }
 
-        //restore the recent previous version of the image 
+    public void addPrevious(){ // previous button 
         JButton previous = new JButton("Previous");
         previous.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -578,22 +604,6 @@ public class Editor { // main editor class-> the GUI part
         previous.setFocusPainted(false);
         previous.setBorder(b);
         frame.add(previous);
-        
-
-        //------------------second row -----------------------//
-        //Additional filters for the second row 
-        addBrightness();
-        addContrast();
-        addSharpner();
-        addRotate();
-        addMirror();
-
-        //save file button
-        addSave();
-
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
-
     }
 
     public void setPanel() { //called with main method and also when a new image is opened
@@ -943,8 +953,8 @@ public class Editor { // main editor class-> the GUI part
         String savepath = fd.getDirectory() + fd.getFile()+".jpg"; //absolute path to the new file to be created
         // System.out.println(savepath);
         try{
-
-            ImageIO.write(image.getImage(), "jpg", new File(savepath)); //save new file as .jpg format
+            if(!savepath.equals("nullnull.jpg"))
+                ImageIO.write(image.getImage(), "jpg", new File(savepath)); //save new file as .jpg format
 
         }catch(IOException ex){
 
